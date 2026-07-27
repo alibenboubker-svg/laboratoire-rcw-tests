@@ -1,18 +1,40 @@
-/**
- * Représente un matériel disponible à la location.
- *
- * Cette classe doit regrouper les informations commerciales et de stock d’un
- * article loué par Eventia Location. Elle porte aussi les règles permettant
- * de vérifier la cohérence d’un matériel et de déterminer si une quantité
- * demandée peut être réservée.
- *
- * Travail demandé :
- * - déduire les données nécessaires à partir du dialogue et des contrats REST;
- * - convertir les valeurs numériques lorsque cela est nécessaire;
- * - vérifier la validité générale d’un matériel;
- * - vérifier si le stock permet une réservation donnée.
- *
- * Ne placez ici aucune logique MongoDB, Express ou Axios.
- */
 export default class Equipment {
+  constructor({ name, category, dailyPrice, availableQuantity } = {}) {
+    this.name = typeof name === "string" ? name.trim() : "";
+    this.category = typeof category === "string" ? category.trim() : "";
+    this.dailyPrice = Number(dailyPrice);
+    this.availableQuantity = Number(availableQuantity);
+  }
+
+  validate() {
+    if (!this.name) {
+      throw new Error("Le nom du materiel est obligatoire.");
+    }
+
+    if (!this.category) {
+      throw new Error("La categorie du materiel est obligatoire.");
+    }
+
+    if (!Number.isFinite(this.dailyPrice) || this.dailyPrice < 0) {
+      throw new Error("Le prix quotidien doit etre positif ou nul.");
+    }
+
+    if (!Number.isInteger(this.availableQuantity) || this.availableQuantity < 0) {
+      throw new Error("La quantite disponible doit etre un entier positif ou nul.");
+    }
+  }
+
+  canReserve(quantity) {
+    const requestedQuantity = Number(quantity);
+    return Number.isInteger(requestedQuantity) && requestedQuantity > 0 && this.availableQuantity >= requestedQuantity;
+  }
+
+  toObject() {
+    return {
+      name: this.name,
+      category: this.category,
+      dailyPrice: this.dailyPrice,
+      availableQuantity: this.availableQuantity
+    };
+  }
 }
